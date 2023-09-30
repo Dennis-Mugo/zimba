@@ -1,5 +1,9 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
+#keys
+firebase/
+constants/index.js
+
 # dependencies
 node_modules/
 

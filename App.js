@@ -1,20 +1,29 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StatusBar, StyleSheet, Text, View } from "react-native";
+import MainNavigator from "./navigation/MainNavigator";
+import AppNavigator from "./navigation/AppNavigator";
+import { ZimbaProvider } from "./context/context";
+import { useFonts } from "expo-font";
+import fonts from "./constants/fonts";
+import { useCallback } from "react";
 
 export default function App() {
+  const [fontsLoaded] = useFonts(fonts);
+
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded) {
+      await SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <>
+      <StatusBar />
+      <ZimbaProvider>
+        <AppNavigator />
+      </ZimbaProvider>
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
