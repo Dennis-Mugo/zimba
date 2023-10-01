@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   Dimensions,
   ScrollView,
@@ -13,9 +13,13 @@ import { Icon } from "@rneui/base";
 import BackArrow from "../../Components/BackArrow";
 import CustomButton from "../../Components/CustomButton";
 import Divider from "../../Components/Divider";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../firebase/config";
+import { ZimbaContext } from "../../context/context";
 
 const { width, height } = Dimensions.get("window");
 const SignInScreen = ({ navigation }) => {
+  const { saveLogin } = useContext(ZimbaContext);
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState(" ");
   const [emailFocused, setEmailFocused] = useState(false);
@@ -23,6 +27,8 @@ const SignInScreen = ({ navigation }) => {
   const [passError, setPassError] = useState(" ");
   const [passFocused, setPassFocused] = useState(false);
   const [passMasked, setPassMasked] = useState(true);
+  const [signinLoading, setSigninLoading] = useState(false);
+  const minPassLength = 8;
 
   const handleEmail = (input) => {
     setEmailError(" ");
@@ -49,12 +55,12 @@ const SignInScreen = ({ navigation }) => {
         setEmailError("Email cannot be empty!");
       }
     } else if (inputName === "password") {
-      let minLength = 8;
+      
       setPassFocused(false);
       if (!pass) {
         setPassError("Password cannot be empty!");
       }
-      if (pass.length < minLength) {
+      if (pass.length < minPassLength) {
         setPassError("Password should be 8 characters or more!");
       }
     }
@@ -64,7 +70,39 @@ const SignInScreen = ({ navigation }) => {
     navigation.push("signUp");
   }
 
-  const handleSignIn = async () => {};
+  const validateData = () => {
+    if (!email || !pass || pass.length < minPassLength) return false;
+    return true;
+  };
+
+  const handleSignInError = (message) => {
+    console.log(message);
+    if (message === 'auth/invalid-email') {
+        setEmailError("Invalid email!");
+    } else if (message === 'auth/invalid-login-credentials') {
+      setPassError("Invalid credientials!");
+    }
+    
+  }
+
+  const handleSignIn = async () => {
+    if (signinLoading || !validateData()) return;
+    setSigninLoading(true);
+    signInWithEmailAndPassword(auth, email, pass)
+  .then(async (userCredential) => {
+    // Signed in 
+    const user = userCredential.user;
+    await saveLogin({userId: user.uid, email: user.email});
+    navigation.replace("MainNavigator");
+    
+  })
+  .catch((error) => {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    handleSignInError(errorCode);
+    setSigninLoading(false);
+  });
+  };
 
 
   return (
@@ -79,6 +117,7 @@ const SignInScreen = ({ navigation }) => {
         style={[
           styles.inputWrapper,
           emailFocused && { borderWidth: 1, borderColor: CustomColors.dark1 },
+          emailError.length > 1 ? {borderColor: CustomColors.error, borderWidth: 1} : {}
         ]}
       >
         <Icon
@@ -105,6 +144,7 @@ const SignInScreen = ({ navigation }) => {
         style={[
           styles.inputWrapper,
           passFocused && { borderWidth: 1, borderColor: CustomColors.dark1 },
+          passError.length > 1 ? {borderColor: CustomColors.error, borderWidth: 1} : {}
         ]}
       >
         <Icon
@@ -141,7 +181,7 @@ const SignInScreen = ({ navigation }) => {
       </View>
       {passError && <Text style={styles.helperText}>{passError}</Text>}
 
-      <CustomButton onPress={handleSignIn} title="Sign in" />
+      <CustomButton onPress={handleSignIn} loading={signinLoading} title="Sign in" />
       <View style={[styles.centerContainer, { marginTop: 0.04 * height, marginBottom: 0.03 * height }]}>
         <Divider style={{ width: 0.85 * width }} />
       </View>
@@ -160,7 +200,7 @@ const SignInScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   screen: {
     flexGrow: 1,
-    backgroundColor: CustomColors.white,
+    backgroundColor: CustomColors.themeBackground,
   },
   title: {
     fontFamily: "mooli",

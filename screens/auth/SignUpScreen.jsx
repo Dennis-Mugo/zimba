@@ -28,6 +28,7 @@ const SignUpScreen = ({ navigation }) => {
   const [passError, setPassError] = useState(" ");
   const [passFocused, setPassFocused] = useState(false);
   const [passMasked, setPassMasked] = useState(true);
+  const [signupLoading, setSignupLoading] = useState(false);
   let minPassLength = 8;
 
   const handleEmail = (input) => {
@@ -84,7 +85,8 @@ const SignUpScreen = ({ navigation }) => {
   }
 
   const handleSignUp = async () => {
-    if (!validateData()) return;
+    if (signupLoading || !validateData()) return;
+    setSignupLoading(true);
     createUserWithEmailAndPassword(auth, email, pass)
       .then(async (userCredential) => {
         //signed up
@@ -106,6 +108,7 @@ const SignUpScreen = ({ navigation }) => {
         const errorMessage = error.message;
         console.log(errorCode);
         handleSignupError(errorCode);
+        setSignupLoading(false);
         // ..
       });
   };
@@ -122,6 +125,7 @@ const SignUpScreen = ({ navigation }) => {
         style={[
           styles.inputWrapper,
           emailFocused && { borderWidth: 1, borderColor: CustomColors.dark1 },
+          emailError.length > 1 ? {borderColor: CustomColors.error, borderWidth: 1} : {}
         ]}
       >
         <Icon
@@ -141,6 +145,7 @@ const SignUpScreen = ({ navigation }) => {
           placeholder="Email"
           value={email}
           onChangeText={handleEmail}
+
         />
       </View>
       {emailError && <Text style={styles.helperText}>{emailError}</Text>}
@@ -149,6 +154,7 @@ const SignUpScreen = ({ navigation }) => {
         style={[
           styles.inputWrapper,
           passFocused && { borderWidth: 1, borderColor: CustomColors.dark1 },
+          passError.length > 1 ? {borderColor: CustomColors.error, borderWidth: 1} : {}
         ]}
       >
         <Icon
@@ -185,7 +191,7 @@ const SignUpScreen = ({ navigation }) => {
       </View>
       {passError && <Text style={styles.helperText}>{passError}</Text>}
 
-      <CustomButton onPress={handleSignUp} title="Sign up" />
+      <CustomButton onPress={handleSignUp} loading={signupLoading} title="Sign up" />
       <View
         style={[
           styles.centerContainer,
@@ -209,7 +215,7 @@ const SignUpScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   screen: {
     flexGrow: 1,
-    backgroundColor: CustomColors.white,
+    backgroundColor: CustomColors.themeBackground,
   },
   title: {
     fontFamily: "mooli",

@@ -5,6 +5,7 @@ import { ZimbaProvider } from "./context/context";
 import { useFonts } from "expo-font";
 import fonts from "./constants/fonts";
 import { useCallback } from "react";
+import CustomColors from "./constants/colors";
 
 export default function App() {
   const [fontsLoaded] = useFonts(fonts);

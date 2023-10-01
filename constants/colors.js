@@ -28,6 +28,7 @@ export const CustomColors = {
   dark3: "#35383F",
   googleBlue: "#4285f4",
   gradientBlue: "linear-gradient(286.17deg, #335EF7 0%, #5F82FF 100%);",
+  themeBackground: "white",
 };
 
 export default CustomColors;

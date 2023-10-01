@@ -58,7 +58,7 @@ const LetInScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "white",
+    backgroundColor: CustomColors.themeBackground,
   },
 
   centerContainer: {

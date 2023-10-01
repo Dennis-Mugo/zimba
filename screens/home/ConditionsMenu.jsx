@@ -1,17 +1,24 @@
 import React, { useContext, useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ZimbaContext } from '../../context/context';
 
-const ConditionsMenu = () => {
-    const { searchPlace } = useContext(ZimbaContext);
+const ConditionsMenu = ({ navigation }) => {
+    const { searchPlace, logOut } = useContext(ZimbaContext);
     useEffect(() => {
         (async () => {
             // await searchPlace();
         })()
-    }, [])
+    }, []);
+
+    const handleSignOut = async () => {
+        await logOut();
+        navigation.replace("AuthNavigator");
+
+    }
     return(
     <View>
         <Text>ConditionsMenu</Text>
+        <TouchableOpacity onPress={handleSignOut}><Text>Sign out</Text></TouchableOpacity>
     </View>
 )};
 
