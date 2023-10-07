@@ -12,6 +12,7 @@ import CustomColors from "../../constants/colors";
 import { Icon } from "@rneui/themed";
 import Divider from "../../Components/Divider";
 import CustomButton from "../../Components/CustomButton";
+import GoogleLogin from "../../Components/GoogleLogin";
 
 const { height, width } = Dimensions.get("window");
 
@@ -27,15 +28,7 @@ const LetInScreen = ({ navigation }) => {
         source={require("../../assets/images/letin.png")}
       />
       <Text style={styles.bannerText}>Zimba AI</Text>
-      <TouchableOpacity style={styles.socialBtn} activeOpacity={0.5}>
-        <Icon
-          name="logo-google"
-          type="ionicon"
-          color={CustomColors.googleBlue}
-          style={{ marginRight: 15 }}
-        />
-        <Text style={styles.btnText}>Continue with Google</Text>
-      </TouchableOpacity>
+      <GoogleLogin />
       <Divider text={"or"} style={{ width: 0.85 * width, marginTop: 10 }} />
       <CustomButton
         title="Sign In with password"
@@ -84,17 +77,7 @@ const styles = StyleSheet.create({
     color: CustomColors.uberDark1,
   },
 
-  socialBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: CustomColors.greyScale400,
-    width: 0.85 * width,
-    height: 60,
-    borderRadius: 10,
-    justifyContent: "center",
-    marginVertical: 20,
-  },
+  
   signInBtn: {
     backgroundColor: CustomColors.gradientBlue,
     width: 0.85 * width,

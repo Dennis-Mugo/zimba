@@ -3,6 +3,7 @@
 #keys
 firebase/
 constants/index.js
+google-services.json
 
 # dependencies
 node_modules/

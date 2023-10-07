@@ -2,6 +2,7 @@
   "expo": {
     "name": "zimba_ai",
     "slug": "zimba_ai",
+    "plugins": ["@react-native-google-signin/google-signin"],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -18,13 +19,21 @@
       "supportsTablet": true
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.dennis2.zimba_ai"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "654a9bb7-cb28-4b30-b86e-934715fe9559"
+      }
+    },
+    "scheme": "zimba_ai"
   }
 }

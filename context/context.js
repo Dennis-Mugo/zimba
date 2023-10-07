@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from "react";
-import { MAPS_API_KEY } from "../constants";
+import { MAPS_API_KEY } from "../constants/index";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { collection, addDoc, setDoc, doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
