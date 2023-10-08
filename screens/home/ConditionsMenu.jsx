@@ -3,7 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ZimbaContext } from '../../context/context';
 
 const ConditionsMenu = ({ navigation }) => {
-    const { searchPlace, logOut } = useContext(ZimbaContext);
+    const { searchPlace, logOut, currentUser } = useContext(ZimbaContext);
     useEffect(() => {
         (async () => {
             // await searchPlace();
@@ -18,6 +18,7 @@ const ConditionsMenu = ({ navigation }) => {
     return(
     <View>
         <Text>ConditionsMenu</Text>
+        <Text>{currentUser?.email}</Text>
         <TouchableOpacity onPress={handleSignOut}><Text>Sign out</Text></TouchableOpacity>
     </View>
 )};

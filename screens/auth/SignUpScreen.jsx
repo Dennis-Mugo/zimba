@@ -93,11 +93,12 @@ const SignUpScreen = ({ navigation }) => {
         const user = userCredential.user;
         
         let userObj = {
-            userId: user.uid,
-            email: user.email
+          email: user.email,
+          dateCreated: Date.now(),
+          provider: "none"
         }
         
-        await saveUser(userObj);
+        await saveUser(user.uid, userObj);
         navigation.replace("MainNavigator");
         
 

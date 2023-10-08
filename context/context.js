@@ -1,8 +1,10 @@
 import { createContext, useEffect, useState } from "react";
-import { MAPS_API_KEY } from "../constants/index";
+import { GOOGLE_SIGNIN_CLIENT_ID, MAPS_API_KEY } from "../constants/index";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { collection, addDoc, setDoc, doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { default as nativeAuth } from "@react-native-firebase/auth";
 import { signOut } from "firebase/auth";
 
 export const ZimbaContext = createContext();
@@ -40,14 +42,10 @@ export const ZimbaProvider = ({ children }) => {
     }
   };
 
-  const saveUser = async (obj) => {
-    await AsyncStorage.setItem("uid", obj.userId);
-    const dbRef = doc(db, `users/${obj.userId}`);
-    const saveDoc = {
-      email: obj.email,
-      dateCreated: Date.now(),
-      userId: obj.userId,
-    };
+  const saveUser = async (userId, obj) => {
+    await AsyncStorage.setItem("uid", userId);
+    const dbRef = doc(db, `users/${userId}`);
+    const saveDoc = obj;
     await setDoc(dbRef, saveDoc);
     setCurrentUser(saveDoc);
   };
@@ -65,7 +63,22 @@ export const ZimbaProvider = ({ children }) => {
   };
 
   const logOut = async () => {
-    await signOut(auth);
+    const provider = currentUser.provider;
+    if (provider == "none") {
+      await signOut(auth);
+    } else if (provider == "google") {
+      try {
+        GoogleSignin.configure({
+          webClientId: GOOGLE_SIGNIN_CLIENT_ID,
+        });
+        await GoogleSignin.revokeAccess();
+        await nativeAuth().signOut();
+        console.log(currentUser.email, "signed out");
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
     await AsyncStorage.removeItem("uid");
     setCurrentUser(null);
   };
