@@ -2,7 +2,7 @@ import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import ConditionsMenu from "../screens/home/ConditionsMenu";
-import ChatScreen from "../screens/home/ChatScreen";
+import ChatScreen from "../screens/chats/ChatScreen";
 import ChatsListScreen from "../screens/chats/ChatsListScreen";
 
 const Tab = createBottomTabNavigator();
@@ -31,6 +31,7 @@ const ChatsNavigator = () => (
     initialRouteName="ConditionsMenu"
   >
     <HomeStack.Screen name="ChatsList" component={ChatsListScreen} />
+    <HomeStack.Screen name="Chat" component={ChatScreen} />
   </ChatsStack.Navigator>
 );
 
