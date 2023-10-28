@@ -15,13 +15,13 @@ import { Avatar } from "react-native-paper";
 
 const { width, height } = Dimensions.get("window");
 
-const ChatsListScreen = () => {
+const ChatsListScreen = ({navigation}) => {
   const { currentUser } = useContext(ZimbaContext);
   let userInitial = currentUser?.email[0].toUpperCase();
 
-  const navigation = useNavigation();
+ 
   const handleNewChat = () => {
-    navigation.navigate("Chat");
+    navigation.navigate("Chat", {conversationId: null});
   };
   return (
     <ScrollView style={styles.screen}>

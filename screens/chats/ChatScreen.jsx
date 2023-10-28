@@ -1,8 +1,11 @@
 import { Icon } from "@rneui/themed";
-import React, { useContext, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   Dimensions,
+  FlatList,
   Image,
+  KeyboardAvoidingView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -17,13 +20,55 @@ import { useNavigation } from "@react-navigation/native";
 import { Avatar } from "react-native-paper";
 import Divider from "../../Components/Divider";
 import { examplePrompts } from "../../constants/text";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import { db } from "../../firebase/config";
+import ChatItem from "../../Components/ChatItem";
+import 'react-native-get-random-values';
+import { v4 } from "uuid";
 
 const { width, height } = Dimensions.get("window");
-const ChatScreen = () => {
-  const navigation = useNavigation();
-  const { currentUser } = useContext(ZimbaContext);
+const ChatScreen = ({ route, navigation }) => {
+  const { conversationList, setConversationList, currentUser, generateChatResponse } =
+    useContext(ZimbaContext);
+  const [conversationId, setConversationId] = useState(route.params.conversationId);
+  // const [conversationId, setConversationId] = useState("p7S2h7eD7XdI3kNyyDpI");
   const [userChat, setUserChat] = useState("");
+  const [chatInputFocused, setChatInputFocused] = useState(false);
   const userInitials = currentUser?.email[0].toUpperCase();
+  const chatFlatList = useRef(null);
+  useCallback(() => {
+    chatFlatList.current.scrollToEnd();
+  }, [])
+  
+
+  useEffect(() => {
+    (async () => {
+      await fetchChats();
+    })();
+  }, []);
+
+  const fetchChats = async () => {
+    if (!conversationId) {
+      setConversationList([]);
+      return;
+    }
+    console.log("here");
+    setConversationList([]);
+    // const query = query(citiesRef, orderBy("name"), limit(3));
+    let chatsRef = collection(db,
+      `users/${currentUser.userId}/conversations/${conversationId}/chats`
+    );
+    const chatQuery = query(chatsRef, orderBy("dateCreated", "asc"));
+    const response = await getDocs(chatQuery);
+      let list = [];
+    response.forEach((chatItem) => {
+      list.push({chatId: chatItem.id, ...chatItem.data()});
+      
+    });
+    
+    setConversationList(list);
+
+  };
 
   const handleGoBack = () => {
     navigation.pop();
@@ -32,18 +77,41 @@ const ChatScreen = () => {
   const handleExamplePress = (index) => {
     let text = examplePrompts[index];
     text = text.title + text.sub;
-    setUserChat(text);
+    handleChat(text);
   };
 
   const handleChat = (text) => {
     setUserChat(text);
   };
 
+  const handleChatFocus = () => {
+    setChatInputFocused(true);
+  }
+
+  const handleChatBlur = () => {
+    setChatInputFocused(false);
+  }
+
   const handleSendChat = async () => {
-    console.log(userChat);
+    let convId = !conversationId ? v4() : conversationId;
+    setConversationId(convId);
+    let currentChat = {
+      role: "user",
+      dateCreated: Date.now().toString(),
+      content: userChat,
+      chatId: v4()
+    };
     setUserChat("");
+    console.log(convId);
+    if (!convId) return;
+    setConversationList(conversationList.concat([currentChat]));
+
+    await generateChatResponse(currentChat, convId);
+    
   };
 
+  console.log(conversationList);
+  
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
@@ -63,38 +131,55 @@ const ChatScreen = () => {
         />
       </View>
       <Divider />
-      <Image
-        source={require("../../assets/images/ask_rafiki.png")}
-        style={{
-          width: width,
-          height: 0.55 * height,
-          marginVertical: 5,
-          borderWidth: 1,
-        }}
-      />
-      {examplePrompts.map((prompt, promptInd) => (
-        <TouchableHighlight
-        key={promptInd}
-        underlayColor="#DDDDDD"
-        style={styles.exampleWrapper}
-        onPress={() => {
-          handleExamplePress(promptInd);
-        }}
-      >
-        <View style={styles.examplePrompts}>
-          <View style={styles.exampleLeft}>
-            <Text style={styles.exampleMain}>{prompt.title}</Text>
-            <Text style={styles.exampleSub}>{prompt.sub}</Text>
-          </View>
-          <Icon
-            name="send-outline"
-            type="material-community"
-            color={CustomColors.googleBlue}
+      {!conversationId ? (
+        <ScrollView>
+          <Image
+            source={require("../../assets/images/ask_rafiki.png")}
+            style={{
+              width: width,
+              height: 0.55 * height,
+              marginVertical: 5,
+              borderWidth: 1,
+            }}
           />
-        </View>
-      </TouchableHighlight>
-      ))}
-      
+          {examplePrompts.map((prompt, promptInd) => (
+            <TouchableHighlight
+              key={promptInd}
+              underlayColor="#DDDDDD"
+              style={styles.exampleWrapper}
+              onPress={() => {
+                handleExamplePress(promptInd);
+              }}
+            >
+              <View style={styles.examplePrompts}>
+                <View style={styles.exampleLeft}>
+                  <Text style={styles.exampleMain}>{prompt.title}</Text>
+                  <Text style={styles.exampleSub}>{prompt.sub}</Text>
+                </View>
+                <Icon
+                  name="send-outline"
+                  type="material-community"
+                  color={CustomColors.googleBlue}
+                />
+              </View>
+            </TouchableHighlight>
+          ))}
+        </ScrollView>
+      ) : (
+          <FlatList
+          contentContainerStyle={styles.chatList}
+          scrollEnabled={true}
+          ref={chatFlatList}
+            data={conversationList}
+            renderItem={({item}) => <ChatItem key={item.chatId} chatObj={item} />}
+          />
+          
+        
+
+        
+          
+        
+      )}
 
       <View style={styles.chatWrapper}>
         <View style={styles.inputWrapper}>
@@ -103,18 +188,24 @@ const ChatScreen = () => {
             value={userChat}
             onChangeText={handleChat}
             cursorColor={CustomColors.uberDark1}
+            onFocus={handleChatFocus}
+            onBlur={handleChatBlur}
             placeholder="Ask Tiba AI..."
           />
 
-          {userChat.length ? (<Icon
-            onPress={handleSendChat}
-            reverse
-            size={17}
-            style={styles.sendIcon}
-            name="send"
-            type="material-community"
-            color={CustomColors.uberDark1}
-          />) : <></>}
+          {userChat.length ? (
+            <Icon
+              onPress={handleSendChat}
+              reverse
+              size={17}
+              style={styles.sendIcon}
+              name="send"
+              type="material-community"
+              color={CustomColors.uberDark1}
+            />
+          ) : (
+            <></>
+          )}
         </View>
       </View>
     </View>
@@ -150,10 +241,11 @@ const styles = StyleSheet.create({
   },
 
   chatWrapper: {
-    position: "absolute",
-    bottom: 0,
-    // borderWidth: 1,
+    // position: "absolute",
+    
+    // bottom: 0,
     borderTopWidth: 1,
+
     borderTopColor: CustomColors.greyScale300,
     backgroundColor: CustomColors.white,
     width: width,
@@ -164,11 +256,11 @@ const styles = StyleSheet.create({
   },
 
   inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
+     flexDirection: "row",
+     alignItems: "center",
     borderWidth: 1,
     borderColor: CustomColors.greyScale400,
-    height: 48,
+    height: 0.06 * height,
     borderRadius: 27,
     width: 0.93 * width,
   },
@@ -179,9 +271,7 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     fontSize: 16,
   },
-  sendIcon: {
-    
-  },
+  sendIcon: {},
   header: {
     flexDirection: "row",
     height: 0.07 * height,
@@ -205,6 +295,12 @@ const styles = StyleSheet.create({
     fontFamily: "nunitoMedium",
     fontSize: 16,
   },
+  chatList: {
+    // height: 0.75 * height,
+    
+  },
+
+  
 });
 
 export default ChatScreen;
