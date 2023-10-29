@@ -1,5 +1,11 @@
 import { Icon } from "@rneui/themed";
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   Dimensions,
   FlatList,
@@ -17,29 +23,31 @@ import CustomColors from "../../constants/colors";
 import { ZimbaContext } from "../../context/context";
 
 import { useNavigation } from "@react-navigation/native";
-import { Avatar } from "react-native-paper";
 import Divider from "../../Components/Divider";
 import { examplePrompts } from "../../constants/text";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { db } from "../../firebase/config";
 import ChatItem from "../../Components/ChatItem";
-import 'react-native-get-random-values';
+import "react-native-get-random-values";
 import { v4 } from "uuid";
+import Avatar from "../../Components/CustomAvatar";
+import CustomAvatar from "../../Components/CustomAvatar";
 
 const { width, height } = Dimensions.get("window");
 const ChatScreen = ({ route, navigation }) => {
-  const { conversationList, setConversationList, currentUser, generateChatResponse } =
-    useContext(ZimbaContext);
-  const [conversationId, setConversationId] = useState(route.params.conversationId);
+  const {
+    conversationList,
+    setConversationList,
+    currentUser,
+    generateChatResponse,
+  } = useContext(ZimbaContext);
+  const [conversationId, setConversationId] = useState(
+    route.params.conversationId
+  );
   // const [conversationId, setConversationId] = useState("p7S2h7eD7XdI3kNyyDpI");
   const [userChat, setUserChat] = useState("");
   const [chatInputFocused, setChatInputFocused] = useState(false);
-  const userInitials = currentUser?.email[0].toUpperCase();
-  const chatFlatList = useRef(null);
-  useCallback(() => {
-    chatFlatList.current.scrollToEnd();
-  }, [])
-  
+  // const chatFlatList = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -52,22 +60,20 @@ const ChatScreen = ({ route, navigation }) => {
       setConversationList([]);
       return;
     }
-    console.log("here");
     setConversationList([]);
     // const query = query(citiesRef, orderBy("name"), limit(3));
-    let chatsRef = collection(db,
+    let chatsRef = collection(
+      db,
       `users/${currentUser.userId}/conversations/${conversationId}/chats`
     );
     const chatQuery = query(chatsRef, orderBy("dateCreated", "asc"));
     const response = await getDocs(chatQuery);
-      let list = [];
+    let list = [];
     response.forEach((chatItem) => {
-      list.push({chatId: chatItem.id, ...chatItem.data()});
-      
+      list.push({ chatId: chatItem.id, ...chatItem.data() });
     });
-    
-    setConversationList(list);
 
+    setConversationList(list);
   };
 
   const handleGoBack = () => {
@@ -86,11 +92,11 @@ const ChatScreen = ({ route, navigation }) => {
 
   const handleChatFocus = () => {
     setChatInputFocused(true);
-  }
+  };
 
   const handleChatBlur = () => {
     setChatInputFocused(false);
-  }
+  };
 
   const handleSendChat = async () => {
     let convId = !conversationId ? v4() : conversationId;
@@ -99,19 +105,17 @@ const ChatScreen = ({ route, navigation }) => {
       role: "user",
       dateCreated: Date.now().toString(),
       content: userChat,
-      chatId: v4()
+      chatId: v4(),
     };
-    setUserChat("");
-    console.log(convId);
+
     if (!convId) return;
     setConversationList(conversationList.concat([currentChat]));
 
     await generateChatResponse(currentChat, convId);
-    
   };
 
   console.log(conversationList);
-  
+
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
@@ -124,11 +128,7 @@ const ChatScreen = ({ route, navigation }) => {
           />
         </TouchableOpacity>
         <Text style={styles.headerText}>Tiba AI</Text>
-        <Avatar.Text
-          size={30}
-          label={userInitials}
-          style={{ backgroundColor: CustomColors.googleBlue }}
-        />
+        <CustomAvatar />
       </View>
       <Divider />
       {!conversationId ? (
@@ -166,19 +166,22 @@ const ChatScreen = ({ route, navigation }) => {
           ))}
         </ScrollView>
       ) : (
-          <FlatList
+        <FlatList
           contentContainerStyle={styles.chatList}
-          scrollEnabled={true}
-          ref={chatFlatList}
-            data={conversationList}
-            renderItem={({item}) => <ChatItem key={item.chatId} chatObj={item} />}
-          />
-          
-        
-
-        
-          
-        
+          ref={(ref) => (this.chatFlatList = ref)}
+          onContentSizeChange={() =>
+            this.chatFlatList != null &&
+            this.chatFlatList.scrollToEnd({ animated: true })
+          }
+          onLayout={() =>
+            this.chatFlatList != null &&
+            this.chatFlatList.scrollToEnd({ animated: true })
+          }
+          data={conversationList}
+          renderItem={({ item }) => (
+            <ChatItem key={item.chatId} chatObj={item} />
+          )}
+        />
       )}
 
       <View style={styles.chatWrapper}>
@@ -195,7 +198,7 @@ const ChatScreen = ({ route, navigation }) => {
 
           {userChat.length ? (
             <Icon
-              onPress={handleSendChat}
+              onPress={async () => {setUserChat(""); await handleSendChat();}}
               reverse
               size={17}
               style={styles.sendIcon}
@@ -242,7 +245,7 @@ const styles = StyleSheet.create({
 
   chatWrapper: {
     // position: "absolute",
-    
+
     // bottom: 0,
     borderTopWidth: 1,
 
@@ -256,8 +259,8 @@ const styles = StyleSheet.create({
   },
 
   inputWrapper: {
-     flexDirection: "row",
-     alignItems: "center",
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
     borderColor: CustomColors.greyScale400,
     height: 0.06 * height,
@@ -297,10 +300,7 @@ const styles = StyleSheet.create({
   },
   chatList: {
     // height: 0.75 * height,
-    
   },
-
-  
 });
 
 export default ChatScreen;

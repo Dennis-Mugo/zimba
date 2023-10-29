@@ -1,8 +1,9 @@
 import { useNavigation } from "@react-navigation/native";
 import { Icon } from "@rneui/themed";
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Dimensions,
+  FlatList,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,12 +13,28 @@ import {
 import CustomColors from "../../constants/colors";
 import { ZimbaContext } from "../../context/context";
 import { Avatar } from "react-native-paper";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../firebase/config";
 
 const { width, height } = Dimensions.get("window");
 
 const ChatsListScreen = ({navigation}) => {
   const { currentUser } = useContext(ZimbaContext);
+  const [conversations, setConversations] = useState([]);
   let userInitial = currentUser?.email[0].toUpperCase();
+
+  useEffect(() => {
+    (async () => {
+      let conversationsRef = collection(db, `users/${currentUser.userId}/conversations`);
+      let result = await getDocs(conversationsRef);
+      let list = []
+      result.forEach((conversationItem) => {
+        list.push(conversationItem);
+      })
+      setConversations(list);
+                                                                        
+    })()
+  }, [])
 
  
   const handleNewChat = () => {
@@ -36,6 +53,9 @@ const ChatsListScreen = ({navigation}) => {
           <Icon type="antdesign" name="plus" color={CustomColors.uberDark1} />
         </TouchableOpacity>
       </View>
+      {conversations.map(item => <TouchableOpacity style={{marginVertical: 10}} key={item.id} onPress={() => {
+        navigation.navigate("Chat", {conversationId: item.id})
+      }}><Text>{item.id}</Text></TouchableOpacity>)}
     </ScrollView>
   );
 };

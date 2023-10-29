@@ -19,7 +19,7 @@ const LoadingScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <ActivityIndicator size="large" color={CustomColors.dark1} />
-      <Text style={styles.appName}>Zimba AI</Text>
+      <Text style={styles.appName}>Tiba AI</Text>
     </View>
   );
 };

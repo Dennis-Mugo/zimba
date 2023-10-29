@@ -95,7 +95,7 @@ export const ZimbaProvider = ({ children }) => {
     setCurrentUser(null);
   };
 
-  const generateChatResponse = async (chatObj, conversationId) => {
+  const generateChatResponse = async (chatObj, conversationId, callBack) => {
     let messageList = conversationList.concat([chatObj]);
 
     let messageHistory = messageList.map((item) => ({
@@ -130,6 +130,14 @@ export const ZimbaProvider = ({ children }) => {
     replyObj.chatId = v4();
 
     setConversationList((prev) => [...prev, replyObj]);
+
+    let conversationRef = doc(
+      db,
+      `users/${currentUser.userId}/conversations/${conversationId}`
+    );
+    setDoc(conversationRef, {
+      dateCreated: Date.now().toString(),
+    });
 
     let chatRef = doc(
       db,

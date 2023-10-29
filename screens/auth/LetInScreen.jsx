@@ -27,7 +27,7 @@ const LetInScreen = ({ navigation }) => {
         style={styles.bannerImage}
         source={require("../../assets/images/letin.png")}
       />
-      <Text style={styles.bannerText}>Zimba AI</Text>
+      <Text style={styles.bannerText}>Tiba AI</Text>
       <GoogleLogin />
       <Divider text={"or"} style={{ width: 0.85 * width, marginTop: 10 }} />
       <CustomButton
