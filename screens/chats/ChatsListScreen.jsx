@@ -13,8 +13,10 @@ import {
 import CustomColors from "../../constants/colors";
 import { ZimbaContext } from "../../context/context";
 import { Avatar } from "react-native-paper";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { db } from "../../firebase/config";
+import ConversationItem from "../../Components/ConversationItem";
+import Divider from "../../Components/Divider";
 
 const { width, height } = Dimensions.get("window");
 
@@ -24,16 +26,21 @@ const ChatsListScreen = ({navigation}) => {
   let userInitial = currentUser?.email[0].toUpperCase();
 
   useEffect(() => {
-    (async () => {
-      let conversationsRef = collection(db, `users/${currentUser.userId}/conversations`);
-      let result = await getDocs(conversationsRef);
-      let list = []
-      result.forEach((conversationItem) => {
-        list.push(conversationItem);
-      })
-      setConversations(list);
-                                                                        
-    })()
+    const unsubscribe = navigation.addListener('focus', () => {
+      (async () => {
+        let conversationsRef = collection(db, `users/${currentUser.userId}/conversations`);
+        const conversationsQuery = query(conversationsRef, orderBy("dateCreated", "desc"));
+
+        let result = await getDocs(conversationsQuery);
+        let list = []
+        result.forEach((conversationItem) => {
+          list.push({...conversationItem.data(), conversationId: conversationItem.id});
+        })
+        setConversations(list);
+                                                                          
+      })()
+    })
+    return unsubscribe;
   }, [])
 
  
@@ -41,7 +48,7 @@ const ChatsListScreen = ({navigation}) => {
     navigation.navigate("Chat", {conversationId: null});
   };
   return (
-    <ScrollView style={styles.screen}>
+    <View style={styles.screen}>
       <View style={styles.header}>
         <Avatar.Text
           size={30}
@@ -53,16 +60,21 @@ const ChatsListScreen = ({navigation}) => {
           <Icon type="antdesign" name="plus" color={CustomColors.uberDark1} />
         </TouchableOpacity>
       </View>
-      {conversations.map(item => <TouchableOpacity style={{marginVertical: 10}} key={item.id} onPress={() => {
-        navigation.navigate("Chat", {conversationId: item.id})
-      }}><Text>{item.id}</Text></TouchableOpacity>)}
-    </ScrollView>
+      <Divider />
+      <FlatList 
+        data={conversations}
+        renderItem={({ item }) => (
+          <ConversationItem key={item.conversationId} conversationObj={item} />
+        )}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   screen: {
-    flexGrow: 1,
+    flex: 1,
+    backgroundColor: "white"
   },
   header: {
     height: 0.07 * height,
@@ -71,7 +83,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 15,
-
+    backgroundColor: CustomColors.white,
     shadowColor: "#000000",
     shadowOffset: {
       width: 0,

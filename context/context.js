@@ -137,6 +137,7 @@ export const ZimbaProvider = ({ children }) => {
     );
     setDoc(conversationRef, {
       dateCreated: Date.now().toString(),
+      title: chatObj.content,
     });
 
     let chatRef = doc(

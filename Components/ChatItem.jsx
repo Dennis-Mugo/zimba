@@ -61,7 +61,8 @@ const styles = StyleSheet.create({
   },
   contentContainerRight: {
     // borderWidth: 1,
-    alignItems: "flex-end"
+    alignItems: "flex-end",
+    maxWidth: width * 0.8,
   },
   avatar: { marginRight: 8 },
   contentWrapper: {

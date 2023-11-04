@@ -1,11 +1,16 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import ConditionsMenu from "../screens/home/ConditionsMenu";
+import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
+
 import ChatScreen from "../screens/chats/ChatScreen";
 import ChatsListScreen from "../screens/chats/ChatsListScreen";
+import { Icon } from "@rneui/themed";
+import CustomColors from "../constants/colors";
+import DashScreen from "../screens/home/DashScreen";
+import InfoForm from "../screens/home/InfoForm";
 
-const Tab = createBottomTabNavigator();
+const Tab = createMaterialBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
 const ChatsStack = createNativeStackNavigator();
 
@@ -15,10 +20,10 @@ const HomeNavigator = () => (
       headerShown: false,
       headerTitle: "",
     })}
-    initialRouteName="ConditionsMenu"
+    initialRouteName="dash"
   >
-    <HomeStack.Screen name="ConditionsMenu" component={ConditionsMenu} />
-    <HomeStack.Screen name="ChatScreen" component={ChatScreen} />
+    <HomeStack.Screen name="dash" component={DashScreen} />
+    <HomeStack.Screen name="info" component={InfoForm} />
   </HomeStack.Navigator>
 );
 
@@ -38,6 +43,13 @@ const ChatsNavigator = () => (
 function MainNavigator() {
   return (
     <Tab.Navigator
+      barStyle={{ backgroundColor: "#f1f1f1" }}
+      // barStyle={{ backgroundColor: "#c2e7ff" }}
+
+      activeColor="#1f1f1f"
+      inactiveColor="#1f1f1f"
+      shifting={true}
+      tabBarColor="#c2e7ff"
       screenOptions={({ route }) => ({
         headerShown: false,
       })}
@@ -45,12 +57,26 @@ function MainNavigator() {
       <Tab.Screen
         name="Home"
         component={HomeNavigator}
-        options={{ tabBarLabel: "Home" }}
+        options={{
+          tabBarLabel: "Home",
+          tabBarColor: "#c2e7ff",
+          tabBarIcon: ({ focused, color }) => (
+            <Icon type="ionicon" name={focused ? "home" : "home-outline"} />
+          ),
+        }}
       />
       <Tab.Screen
         name="Chats"
         component={ChatsNavigator}
-        options={{ tabBarLabel: "Chats" }}
+        options={{
+          tabBarLabel: "Chats",
+          tabBarIcon: ({ focused }) => (
+            <Icon
+              type="ionicon"
+              name={focused ? "chatbox" : "chatbox-outline"}
+            />
+          ),
+        }}
       />
     </Tab.Navigator>
   );
