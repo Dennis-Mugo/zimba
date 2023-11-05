@@ -9,10 +9,12 @@ import { Icon } from "@rneui/themed";
 import CustomColors from "../constants/colors";
 import DashScreen from "../screens/home/DashScreen";
 import InfoForm from "../screens/home/InfoForm";
+import Profile from "../screens/auth/Profile";
 
 const Tab = createMaterialBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
 const ChatsStack = createNativeStackNavigator();
+const UserStack = createNativeStackNavigator();
 
 const HomeNavigator = () => (
   <HomeStack.Navigator
@@ -35,9 +37,21 @@ const ChatsNavigator = () => (
     })}
     initialRouteName="ConditionsMenu"
   >
-    <HomeStack.Screen name="ChatsList" component={ChatsListScreen} />
-    <HomeStack.Screen name="Chat" component={ChatScreen} />
+    <ChatsStack.Screen name="ChatsList" component={ChatsListScreen} />
+    <ChatsStack.Screen name="Chat" component={ChatScreen} />
   </ChatsStack.Navigator>
+);
+
+const UserNavigator = () => (
+  <UserStack.Navigator
+    screenOptions={({ route }) => ({
+      headerShown: false,
+      headerTitle: "",
+    })}
+    initialRouteName="ConditionsMenu"
+  >
+    <UserStack.Screen name="profile" component={Profile} />
+  </UserStack.Navigator>
 );
 
 function MainNavigator() {
@@ -75,6 +89,16 @@ function MainNavigator() {
               type="ionicon"
               name={focused ? "chatbox" : "chatbox-outline"}
             />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="User"
+        component={UserNavigator}
+        options={{
+          tabBarLabel: "Profile",
+          tabBarIcon: ({ focused }) => (
+            <Icon type="ionicon" name={focused ? "person" : "person-outline"} />
           ),
         }}
       />

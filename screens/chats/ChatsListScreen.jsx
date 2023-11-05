@@ -17,6 +17,7 @@ import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { db } from "../../firebase/config";
 import ConversationItem from "../../Components/ConversationItem";
 import Divider from "../../Components/Divider";
+import CustomAvatar from "../../Components/CustomAvatar";
 
 const { width, height } = Dimensions.get("window");
 
@@ -50,11 +51,12 @@ const ChatsListScreen = ({navigation}) => {
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <Avatar.Text
+        {/* <Avatar.Text
           size={30}
           label={userInitial}
           style={{ backgroundColor: CustomColors.googleBlue }}
-        />
+        /> */}
+        <CustomAvatar />
         <Text style={styles.headerText}>Chats</Text>
         <TouchableOpacity activeOpacity={0.5} onPress={handleNewChat}>
           <Icon type="antdesign" name="plus" color={CustomColors.uberDark1} />

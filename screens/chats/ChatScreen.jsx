@@ -107,7 +107,7 @@ const ChatScreen = ({ route, navigation }) => {
       content: userChat,
       chatId: v4(),
     };
-
+    console.log(convId);
     if (!convId) return;
     setConversationList(conversationList.concat([currentChat]));
 

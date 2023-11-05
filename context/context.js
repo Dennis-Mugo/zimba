@@ -1,7 +1,14 @@
 import { createContext, useEffect, useState } from "react";
 import { GOOGLE_SIGNIN_CLIENT_ID, MAPS_API_KEY } from "../constants/index";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { collection, addDoc, setDoc, doc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  setDoc,
+  doc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
 import { auth, db } from "../firebase/config";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { default as nativeAuth } from "@react-native-firebase/auth";
@@ -21,7 +28,7 @@ export const ZimbaProvider = ({ children }) => {
   const botSetting = {
     role: "system",
     content:
-      "You are Tiba AI, a health consultant and you should ask a follow-up question when the user prompts. Once the user has responded to the follow-up questions then a diagnosis of possible disease can be made and then give home remedies. Try to generate short reponses.",
+      "You are Tiba AI, a health consultant and assistant and you should ask a follow-up question when the user prompts. Once the user has responded to the follow-up questions then a diagnosis of possible disease can be made and then give home remedies. Try to generate short reponses.",
   };
 
   const searchPlace = async () => {
@@ -57,9 +64,13 @@ export const ZimbaProvider = ({ children }) => {
   const saveUser = async (userId, obj) => {
     await AsyncStorage.setItem("uid", userId);
     const dbRef = doc(db, `users/${userId}`);
-    const saveDoc = obj;
-    await setDoc(dbRef, saveDoc);
-    setCurrentUser(saveDoc);
+    const document = await getDoc(dbRef);
+    if (!document.exists()) {
+      setCurrentUser({ ...obj, userId });
+      await setDoc(dbRef, obj);
+    } else {
+      setCurrentUser({ ...document.data(), userId });
+    }
   };
 
   const saveLogin = async (obj) => {
@@ -159,6 +170,12 @@ export const ZimbaProvider = ({ children }) => {
     // }
   };
 
+  const saveExtraInfo = async (obj) => {
+    let dbRef = doc(db, `users/${currentUser.userId}`);
+    await updateDoc(dbRef, obj);
+    setCurrentUser({ ...currentUser, ...obj });
+  };
+
   return (
     <ZimbaContext.Provider
       value={{
@@ -171,6 +188,7 @@ export const ZimbaProvider = ({ children }) => {
         conversationList,
         setConversationList,
         generateChatResponse,
+        saveExtraInfo,
       }}
     >
       {children}

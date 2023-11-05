@@ -48,7 +48,7 @@ const DashScreen = ({ navigation }) => {
         source={require("../../assets/images/rafiki_in_screen.png")}
         style={{
           width: width,
-          height: 0.45 * height,
+          height: 0.55 * height,
           marginVertical: 5,
           borderWidth: 1,
         }}

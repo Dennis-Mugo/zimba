@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   Dimensions,
   ScrollView,
@@ -9,14 +9,19 @@ import {
 } from "react-native";
 import CustomColors from "../../constants/colors";
 import { Button } from "react-native-paper";
+import { ZimbaContext } from "../../context/context";
 
 const { width, height } = Dimensions.get("window");
 
-const InfoForm = () => {
-  const [age, setAge] = useState("");
-  const [conditions, setConditions] = useState("");
+const InfoForm = ({ navigation }) => {
+  const { saveExtraInfo, currentUser } = useContext(ZimbaContext);
+  const [age, setAge] = useState(currentUser?.age || "");
+  const [conditions, setConditions] = useState(
+    currentUser?.underlyingConditions || ""
+  );
   const [conditionsFocused, setConditionsFocused] = useState(false);
   const [ageFocused, setAgeFocused] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
 
   const handleAge = (value) => {
     let res = "";
@@ -32,7 +37,7 @@ const InfoForm = () => {
 
   const handleConditions = (value) => {
     setConditions(value);
-  }
+  };
 
   const handleAgeFocus = () => {
     setAgeFocused(true);
@@ -44,13 +49,22 @@ const InfoForm = () => {
 
   const handleConditionsFocused = () => {
     setConditionsFocused(true);
-  }
+  };
 
   const handleConditionsBlur = () => {
     setConditionsFocused(false);
-  }
+  };
 
-  const handleSubmit = async () => {}
+  const handleSubmit = async () => {
+    if (!age.trim().length && !conditions.trim().length) return;
+    setSubmitLoading(true);
+    await saveExtraInfo({
+      age: age.trim(),
+      underlyingConditions: conditions.trim(),
+    });
+    setSubmitLoading(false);
+    navigation.navigate("dash");
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
@@ -79,7 +93,9 @@ const InfoForm = () => {
         />
       </View>
 
-      <Text style={styles.conditionsLabel}>Do you have any underlying conditons? If yes, please fill them in</Text>
+      <Text style={styles.conditionsLabel}>
+        Do you have any underlying conditons? If yes, please fill them in
+      </Text>
       <View
         style={[
           styles.conditionsInputWrapper,
@@ -99,11 +115,18 @@ const InfoForm = () => {
           onBlur={handleConditionsBlur}
           placeholder="E.g Diabetes"
         />
-        
       </View>
-      <Button onPress={handleSubmit} mode="contained" contentStyle={{height: 60}} style={styles.submitBtn}>
-            SAVE
-        </Button>
+      <Button
+        icon="check"
+        loading={submitLoading}
+        onPress={handleSubmit}
+        mode="contained"
+        contentStyle={{ height: 60 }}
+        style={styles.submitBtn}
+        labelStyle={styles.submitBtnText}
+      >
+        SAVE
+      </Button>
     </ScrollView>
   );
 };
@@ -113,7 +136,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 25,
     justifyContent: "center",
-    backgroundColor: CustomColors.themeBackground
+    backgroundColor: CustomColors.themeBackground,
   },
   title: {
     fontFamily: "nunitoBold",
@@ -126,13 +149,13 @@ const styles = StyleSheet.create({
   conditionsLabel: {
     fontFamily: "nunitoSemiBold",
     fontSize: 15,
-    marginTop: 40
+    marginTop: 40,
   },
   ageInputWrapper: {
     borderBottomWidth: 2,
     marginTop: 10,
   },
-  conditionsInputWrapper : {
+  conditionsInputWrapper: {
     borderBottomWidth: 2,
     marginTop: 10,
   },
@@ -154,10 +177,11 @@ const styles = StyleSheet.create({
     marginTop: 30,
     height: 60,
     justifyContent: "center",
-    
-    fontSize: 18,
-    
-  }
+  },
+  submitBtnText: {
+    fontFamily: "nunitoBold",
+    fontSize: 16,
+  },
 });
 
 export default InfoForm;

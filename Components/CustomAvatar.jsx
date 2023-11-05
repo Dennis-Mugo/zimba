@@ -6,15 +6,15 @@ import CustomColors from '../constants/colors';
 import { useNavigation } from '@react-navigation/native';
 
 
-const CustomAvatar = ({ type, style }) =>{ 
+const CustomAvatar = ({ type, style, size }) =>{ 
   const navigation = useNavigation();
     const { currentUser } = useContext(ZimbaContext);
     const userInitials = type == 'bot' ? "AI" : currentUser?.email[0].toUpperCase();
  
     return (
-      <TouchableOpacity activeOpacity={1} onPress={() => {navigation.navigate("Chats")}}>
+      <TouchableOpacity activeOpacity={0.8} onPress={() => {navigation.navigate("User")}}>
     <Avatar.Text
-          size={30}
+          size={size || 30}
           label={userInitials}
           style={{ backgroundColor: type == 'bot' ? CustomColors.dark1 : CustomColors.googleBlue, ...style }}
         />

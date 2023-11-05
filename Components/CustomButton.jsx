@@ -8,9 +8,11 @@ import {
   View,
 } from "react-native";
 import CustomColors from "../constants/colors";
+import { useNavigation } from "@react-navigation/native";
 
 const { height, width } = Dimensions.get("window");
 const CustomButton = (props) => {
+  const navigation = useNavigation();
   let { loading } = props;
 
   return (
