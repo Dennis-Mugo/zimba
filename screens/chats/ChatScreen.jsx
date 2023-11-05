@@ -137,7 +137,7 @@ const ChatScreen = ({ route, navigation }) => {
             source={require("../../assets/images/ask_rafiki.png")}
             style={{
               width: width,
-              height: 0.55 * height,
+              height: 0.5 * height,
               marginVertical: 5,
               borderWidth: 1,
             }}

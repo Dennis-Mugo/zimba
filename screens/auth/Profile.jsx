@@ -77,6 +77,28 @@ const Profile = ({ navigation }) => {
         <Divider />
         </>
       )}
+      {currentUser?.dateCreated && (
+        <>
+        <View style={styles.listWrapper}>
+          <Icon
+            type="material-community"
+            name="calendar"
+            color={CustomColors.greyScale600}
+            style={styles.detailIcon}
+          />
+          <View style={styles.detailWrapper}>
+            <Text style={styles.title}>Joined</Text>
+            <Text style={styles.value}>{new Date(currentUser.dateCreated).toLocaleDateString("en-US", {
+                weekday: "short",
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+            })}</Text>
+          </View>
+        </View>
+        <Divider />
+        </>
+      )}
       <CustomButton title="Sign Out" loading={signoutLoading} onPress={handleSignout} />
     </ScrollView>
   );

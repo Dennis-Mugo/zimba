@@ -23,10 +23,7 @@ const DashScreen = ({ navigation }) => {
     })();
   }, []);
 
-  const handleSignOut = async () => {
-    await logOut();
-    navigation.replace("AuthNavigator");
-  };
+ 
 
   const handleMoreInfoPress = () => {
     navigation.navigate("info");

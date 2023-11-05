@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "zimba_ai",
+    "name": "Tiba AI",
     "slug": "zimba_ai",
     "plugins": ["@react-native-google-signin/google-signin"],
     "version": "1.0.0",

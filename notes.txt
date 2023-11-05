@@ -1,2 +1,5 @@
 eas credentials
 eas build --profile development --platform android
+
+eas build:configure
+eas build --platform android
