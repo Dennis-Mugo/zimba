@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Dimensions,
   ScrollView,
@@ -13,13 +13,36 @@ import CustomColors from "../../constants/colors";
 import { Image } from "react-native";
 import CustomAvatar from "../../Components/CustomAvatar";
 import { Icon } from "@rneui/themed";
+import { getCurrentPositionAsync, requestForegroundPermissionsAsync } from "expo-location";
+
+
 
 const { width, height } = Dimensions.get("window");
 const DashScreen = ({ navigation }) => {
-  const { searchPlace, logOut, currentUser } = useContext(ZimbaContext);
+  const { searchPlaces, logOut, currentUser } = useContext(ZimbaContext);
   useEffect(() => {
     (async () => {
-      // await searchPlace();
+      // await searchPlaces();
+
+    })();
+  }, []);
+
+  const [location, setLocation] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      
+      let { status } = await requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log("not granted");
+        setErrorMsg('Permission to access location was denied');
+        return;
+      }
+
+      let location = await getCurrentPositionAsync({});
+      console.log(location);
+      setLocation(location);
     })();
   }, []);
 

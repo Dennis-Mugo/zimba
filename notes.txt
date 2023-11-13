@@ -3,3 +3,10 @@ eas build --profile development --platform android
 
 eas build:configure
 eas build --platform android
+
+    
+    
+    
+    
+    
+"expo-dev-client": "^2.4.11",

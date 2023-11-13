@@ -4,7 +4,8 @@
 firebase/
 constants/index.js
 google-services.json
-zimba.algo/
+zimba.algo/env.js
+zimba.algo/zimba.algo.js
 
 # dependencies
 node_modules/

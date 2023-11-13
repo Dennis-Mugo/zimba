@@ -16,6 +16,11 @@ import { signOut } from "firebase/auth";
 import OpenAI from "openai";
 import { process } from "../zimba.algo/env";
 import { v4 } from "uuid";
+import {
+  getCurrentPositionAsync,
+  requestForegroundPermissionsAsync,
+} from "expo-location";
+import { checkIfLocationRequested } from "../zimba.algo/stories.zimba.algo";
 
 export const ZimbaContext = createContext();
 const openai = new OpenAI({
@@ -25,22 +30,108 @@ const openai = new OpenAI({
 export const ZimbaProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [conversationList, setConversationList] = useState();
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  const getLocationPermission = async () => {
+    let { status } = await requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      console.log("not granted");
+      setErrorMsg("Permission to access location was denied");
+      return false;
+    }
+    return true;
+  };
+
+  const getCurrentLocation = async () => {
+    let permitted = await getLocationPermission();
+    if (!permitted) return false;
+    let location = await getCurrentPositionAsync({});
+    console.log(location);
+    return {
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+    };
+  };
+
+  useEffect(() => {
+    getLocationPermission();
+  }, []);
+
   const botSetting = {
     role: "system",
     content:
       "You are Tiba AI, a health consultant and assistant and you should ask a follow-up question when the user prompts. Once the user has responded to the follow-up questions then a diagnosis of possible disease can be made and then give home remedies. Try to generate short reponses.",
   };
 
-  const searchPlace = async () => {
-    // let res = await fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=-1.3093245,36.8099464&radius=1000&types=hospital&key=${MAPS_API_KEY}`);
+  const searchPlaces = async (coordinates) => {
+    let { latitude, longitude } = coordinates;
+    let res = await fetch(
+      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&rankby=distance&type=pharmacy&key=${MAPS_API_KEY}`
+    );
+
     // ChIJNWrg - I4RLxgRgr6k_Dedwog;
     // let res = await fetch(
     //   `https://maps.googleapis.com/maps/api/place/details/json?place_id=ChIJNWrg-I4RLxgRgr6k_Dedwog&key=${MAPS_API_KEY}`
     // );
 
     res = await res.json();
-    console.log("\n\n\n\n");
-    console.log(res);
+    let result = [];
+    for await (let place of res.results) {
+      // console.log(place.place_id);
+      let placeId = place.place_id;
+      // console.log("\n\n\n\n");
+      let placeDetails = await searchPlace(placeId);
+      result.push(placeDetails);
+      // console.log(placeDetails);
+    }
+    console.log(res.results.length);
+    return result;
+    // await searchPlace("ChIJjzGWo4wQLxgRMzKVhH_w81M");
+
+    // console.log(res);
+  };
+
+  const searchPlace = async (placeId) => {
+    let res = await fetch(
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${MAPS_API_KEY}`
+    );
+
+    res = await res.json();
+    let obj = {
+      url: res.result.url,
+      name: res.result.name,
+      vicinity: res.result.vicinity,
+    };
+    return obj;
+  };
+
+  const getPlacesToDisplay = (places) => {
+    let res = [];
+    for (let place of places) {
+      if (!place.vicinity.includes("+")) {
+        res.push(place);
+      }
+    }
+    return res;
+  };
+
+  const formatNearbySearchResponse = (places) => {
+    console.log(places);
+    let placesToDisplay = getPlacesToDisplay(places);
+
+    let result = "";
+    result += "Here you go:\n\n";
+    for (let place of placesToDisplay) {
+      result += `${place.name} : ${place.vicinity}\n\n`;
+    }
+
+    return {
+      chatId: v4(),
+      content: result,
+      role: "assistant",
+      dateCreated: Date.now().toString(),
+    };
   };
 
   const fetchUser = async () => {
@@ -106,7 +197,31 @@ export const ZimbaProvider = ({ children }) => {
     setCurrentUser(null);
   };
 
+  const getLocationReplyObj = async () => {
+    let currentLocation = await getCurrentLocation();
+    if (!currentLocation) {
+      return {
+        content: "You have not granted location permission to Tiba AI",
+        dateCreated: Date.now().toString(),
+        role: "assistant",
+        chatId: v4(),
+      };
+    }
+    let nearbyPlaces = await searchPlaces(currentLocation);
+    if (!nearbyPlaces.length) {
+      return {
+        content: "We could not find what you are looking for",
+        dateCreated: Date.now().toString(),
+        role: "assistant",
+        chatId: v4(),
+      };
+    }
+    replyObj = formatNearbySearchResponse(nearbyPlaces);
+    return replyObj;
+  };
+
   const generateChatResponse = async (chatObj, conversationId, callBack) => {
+    let replyObj = false;
     let messageList = conversationList.concat([chatObj]);
 
     let messageHistory = messageList.map((item) => ({
@@ -116,30 +231,40 @@ export const ZimbaProvider = ({ children }) => {
     for (let message of messageHistory) {
       console.log(message);
     }
+    let locationRequested = await checkIfLocationRequested(chatObj.content);
+    let [requested, details] = locationRequested.split("|");
+    console.log(locationRequested);
+    if (requested.includes("TRUE")) {
+      replyObj = await getLocationReplyObj();
+    }
+
     // const completion = await openai.chat.completions.create({
     //   model: "gpt-3.5-turbo",
     //   messages: [botSetting, ...messageHistory],
     //   stream: true,
     // });
+    if (!replyObj) {
+      let completion = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [botSetting, ...messageHistory],
+          }),
+        }
+      );
 
-    let completion = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [botSetting, ...messageHistory],
-      }),
-    });
-
-    completion = await completion.json();
-    let replyObj = completion.choices[0].message;
-    replyObj.dateCreated = Date.now().toString();
-    replyObj.chatId = v4();
-
+      completion = await completion.json();
+      replyObj = completion.choices[0].message;
+      replyObj.dateCreated = Date.now().toString();
+      replyObj.chatId = v4();
+    }
     setConversationList((prev) => [...prev, replyObj]);
 
     let conversationRef = doc(
@@ -180,6 +305,7 @@ export const ZimbaProvider = ({ children }) => {
     <ZimbaContext.Provider
       value={{
         searchPlace,
+        searchPlaces,
         currentUser,
         saveUser,
         saveLogin,
@@ -189,6 +315,7 @@ export const ZimbaProvider = ({ children }) => {
         setConversationList,
         generateChatResponse,
         saveExtraInfo,
+        getCurrentLocation,
       }}
     >
       {children}

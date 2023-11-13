@@ -2,6 +2,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Icon } from "@rneui/themed";
 import React, { useContext, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   ScrollView,
@@ -21,32 +22,42 @@ import CustomAvatar from "../../Components/CustomAvatar";
 
 const { width, height } = Dimensions.get("window");
 
-const ChatsListScreen = ({navigation}) => {
+const ChatsListScreen = ({ navigation }) => {
   const { currentUser } = useContext(ZimbaContext);
   const [conversations, setConversations] = useState([]);
+  const [loading, setLoading] = useState(true);
   let userInitial = currentUser?.email[0].toUpperCase();
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
+    const unsubscribe = navigation.addListener("focus", () => {
       (async () => {
-        let conversationsRef = collection(db, `users/${currentUser.userId}/conversations`);
-        const conversationsQuery = query(conversationsRef, orderBy("dateCreated", "desc"));
+        setLoading(true);
+        let conversationsRef = collection(
+          db,
+          `users/${currentUser.userId}/conversations`
+        );
+        const conversationsQuery = query(
+          conversationsRef,
+          orderBy("dateCreated", "desc")
+        );
 
         let result = await getDocs(conversationsQuery);
-        let list = []
+        let list = [];
         result.forEach((conversationItem) => {
-          list.push({...conversationItem.data(), conversationId: conversationItem.id});
-        })
+          list.push({
+            ...conversationItem.data(),
+            conversationId: conversationItem.id,
+          });
+        });
         setConversations(list);
-                                                                          
-      })()
-    })
+        setLoading(false);
+      })();
+    });
     return unsubscribe;
-  }, [])
+  }, []);
 
- 
   const handleNewChat = () => {
-    navigation.navigate("Chat", {conversationId: null});
+    navigation.navigate("Chat", { conversationId: null });
   };
   return (
     <View style={styles.screen}>
@@ -63,12 +74,22 @@ const ChatsListScreen = ({navigation}) => {
         </TouchableOpacity>
       </View>
       <Divider />
-      <FlatList 
-        data={conversations}
-        renderItem={({ item }) => (
-          <ConversationItem key={item.conversationId} conversationObj={item} />
-        )}
-      />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={CustomColors.uberDark1} />
+          <Text style={styles.loadingText}>Getting your conversations...</Text>
+        </View>
+      ) : !conversations.length ? <Text style={styles.emptyListText}>You have no conversations. Select the + icon to start one.</Text> : (
+        <FlatList
+          data={conversations}
+          renderItem={({ item }) => (
+            <ConversationItem
+              key={item.conversationId}
+              conversationObj={item}
+            />
+          )}
+        />
+      )}
     </View>
   );
 };
@@ -76,7 +97,7 @@ const ChatsListScreen = ({navigation}) => {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "white"
+    backgroundColor: "white",
   },
   header: {
     height: 0.07 * height,
@@ -99,6 +120,20 @@ const styles = StyleSheet.create({
     fontFamily: "nunitoMedium",
     fontSize: 15,
   },
+  loadingContainer: { flex: 1, justifyContent: "center" },
+  loadingText: {
+    textAlign: "center",
+    marginTop: 10,
+    fontFamily: "nunitoLight"
+  },
+  emptyListText: {
+    textAlign: 'center',
+    marginTop: 0.1 * height,
+    fontFamily: "nunitoMedium",
+    marginHorizontal: 20
+    
+  }
+  
 });
 
 export default ChatsListScreen;
