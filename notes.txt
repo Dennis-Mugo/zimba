@@ -9,4 +9,3 @@ eas build --platform android
     
     
     
-"expo-dev-client": "^2.4.11",

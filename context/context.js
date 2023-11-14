@@ -8,6 +8,7 @@ import {
   doc,
   getDoc,
   updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
@@ -176,6 +177,11 @@ export const ZimbaProvider = ({ children }) => {
     }
   };
 
+  const deleteAccount = async () => {
+    let dbRef = doc(db, `users/${currentUser.userId}`);
+    await deleteDoc(dbRef);
+  };
+
   const logOut = async () => {
     const provider = currentUser.provider;
     if (provider == "none") {
@@ -316,6 +322,7 @@ export const ZimbaProvider = ({ children }) => {
         generateChatResponse,
         saveExtraInfo,
         getCurrentLocation,
+        deleteAccount,
       }}
     >
       {children}
