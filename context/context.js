@@ -226,7 +226,11 @@ export const ZimbaProvider = ({ children }) => {
     return replyObj;
   };
 
-  const generateChatResponse = async (chatObj, conversationId, callBack) => {
+  const generateChatResponse = async (
+    chatObj,
+    conversationId,
+    isNewConversation
+  ) => {
     let replyObj = false;
     let messageList = conversationList.concat([chatObj]);
 
@@ -260,7 +264,7 @@ export const ZimbaProvider = ({ children }) => {
             Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
           },
           body: JSON.stringify({
-            model: "gpt-3.5-turbo",
+            model: "gpt-4",
             messages: [botSetting, ...messageHistory],
           }),
         }
@@ -273,15 +277,16 @@ export const ZimbaProvider = ({ children }) => {
     }
     setConversationList((prev) => [...prev, replyObj]);
 
-    let conversationRef = doc(
-      db,
-      `users/${currentUser.userId}/conversations/${conversationId}`
-    );
-    setDoc(conversationRef, {
-      dateCreated: Date.now().toString(),
-      title: chatObj.content,
-    });
-
+    if (isNewConversation) {
+      let conversationRef = doc(
+        db,
+        `users/${currentUser.userId}/conversations/${conversationId}`
+      );
+      setDoc(conversationRef, {
+        dateCreated: Date.now().toString(),
+        title: chatObj.content,
+      });
+    }
     let chatRef = doc(
       db,
       `users/${currentUser.userId}/conversations/${conversationId}/chats/${chatObj.chatId}`

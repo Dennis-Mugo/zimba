@@ -1,10 +1,24 @@
 import React from "react";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
 import CustomAvatar from "./CustomAvatar";
 import CustomColors from "../constants/colors";
 
 const {width, height} = Dimensions.get("window");
 const ChatItem = ({ chatObj }) => {
+  if (chatObj.role == "loader") {
+    return (
+      <View style={styles.chatLeftContainer}>
+          <CustomAvatar type="bot" style={{marginRight: 5}} />
+          <View style={styles.contentContainer}>
+            <View style={styles.contentWrapperLeft}>
+              {/* <Text style={styles.contentLeft}>{chatObj.content}</Text> */}
+              <Image source={require("../assets/load.gif")} />
+            </View>
+            
+          </View>
+        </View>
+    );
+  }
   return (
     <>
       {chatObj.role == "assistant" ? (

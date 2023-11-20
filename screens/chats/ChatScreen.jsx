@@ -47,11 +47,14 @@ const ChatScreen = ({ route, navigation }) => {
   // const [conversationId, setConversationId] = useState("p7S2h7eD7XdI3kNyyDpI");
   const [userChat, setUserChat] = useState("");
   const [chatInputFocused, setChatInputFocused] = useState(false);
+  const [responseLoading, setResponseLoading] = useState(false);
   // const chatFlatList = useRef(null);
 
   useEffect(() => {
     (async () => {
+      setResponseLoading(true);
       await fetchChats();
+      setResponseLoading(false);
     })();
   }, []);
 
@@ -99,7 +102,15 @@ const ChatScreen = ({ route, navigation }) => {
   };
 
   const handleSendChat = async () => {
-    let convId = !conversationId ? v4() : conversationId;
+    setResponseLoading(true);
+    let newConversation = false;
+    let convId;
+    if (!conversationId) {
+      convId = v4();
+      newConversation = true;
+    } else {
+      convId = conversationId;
+    }
     setConversationId(convId);
     let currentChat = {
       role: "user",
@@ -107,11 +118,12 @@ const ChatScreen = ({ route, navigation }) => {
       content: userChat,
       chatId: v4(),
     };
-    console.log(convId);
+    console.log("Conversation ID", convId);
     if (!convId) return;
     setConversationList(conversationList.concat([currentChat]));
 
-    await generateChatResponse(currentChat, convId);
+    await generateChatResponse(currentChat, convId, newConversation);
+    setResponseLoading(false);
   };
 
   console.log(conversationList);
@@ -177,6 +189,7 @@ const ChatScreen = ({ route, navigation }) => {
             this.chatFlatList != null &&
             this.chatFlatList.scrollToEnd({ animated: true })
           }
+          ListFooterComponent={<ResponseLoader loading={responseLoading} />}
           data={conversationList}
           renderItem={({ item }) => (
             <ChatItem key={item.chatId} chatObj={item} />
@@ -198,7 +211,11 @@ const ChatScreen = ({ route, navigation }) => {
 
           {userChat.length ? (
             <Icon
-              onPress={async () => {setUserChat(""); await handleSendChat();}}
+              onPress={async () => {
+                if (responseLoading) return;
+                setUserChat("");
+                await handleSendChat();
+              }}
               reverse
               size={17}
               style={styles.sendIcon}
@@ -212,6 +229,13 @@ const ChatScreen = ({ route, navigation }) => {
         </View>
       </View>
     </View>
+  );
+};
+
+const ResponseLoader = ({ loading }) => {
+  if (!loading) return <></>
+  return (
+    <ChatItem chatObj={{role: "loader"}} />
   );
 };
 
@@ -300,6 +324,10 @@ const styles = StyleSheet.create({
   },
   chatList: {
     // height: 0.75 * height,
+  },
+  lottie: {
+    width: 100,
+    height: 100,
   },
 });
 

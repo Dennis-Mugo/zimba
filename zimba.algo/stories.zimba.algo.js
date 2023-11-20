@@ -37,5 +37,7 @@ export const checkIfLocationRequested = async (outline) => {
   //   max_tokens: 60,
   // });
   response = await response.json();
-  return response.choices[0].text;
+  console.log(response);
+  // return response.choices[0].text;
+  return "FALSE|na";
 };
