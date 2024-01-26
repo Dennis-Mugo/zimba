@@ -126,7 +126,7 @@ const ChatScreen = ({ route, navigation }) => {
     setResponseLoading(false);
   };
 
-  console.log(conversationList);
+  // console.log(conversationList);
 
   return (
     <View style={styles.screen}>

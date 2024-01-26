@@ -239,14 +239,18 @@ export const ZimbaProvider = ({ children }) => {
       content: item.content,
     }));
     for (let message of messageHistory) {
-      console.log(message);
+      // console.log(message);
     }
-    let locationRequested = await checkIfLocationRequested(chatObj.content);
-    let [requested, details] = locationRequested.split("|");
-    console.log(locationRequested);
-    if (requested.includes("TRUE")) {
-      replyObj = await getLocationReplyObj();
-    }
+    //Disabled location feature
+    //Start of location feature
+    // let locationRequested = await checkIfLocationRequested(chatObj.content);
+    // console.log(locationRequested);
+    // let [requested, details] = locationRequested.split("|");
+    // console.log(locationRequested);
+    // if (requested.includes("TRUE")) {
+    //   replyObj = await getLocationReplyObj();
+    // }
+    //End of location feature
 
     // const completion = await openai.chat.completions.create({
     //   model: "gpt-3.5-turbo",
